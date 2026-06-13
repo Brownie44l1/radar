@@ -7,12 +7,6 @@ interface Props {
   onSelectToken: (address: string, chain: string) => void
 }
 
-const CHAIN_COLORS: Record<string, string> = {
-  solana: "#9945FF",
-  ethereum: "#627EEA",
-  base: "#0052FF",
-}
-
 function formatVolume(vol: number): string {
   if (vol >= 1_000_000_000) return `$${(vol / 1_000_000_000).toFixed(1)}B`
   if (vol >= 1_000_000) return `$${(vol / 1_000_000).toFixed(1)}M`

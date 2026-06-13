@@ -73,11 +73,6 @@ export default function AIChat() {
     }
   }
 
-  const handleClear = () => {
-    setMessages([])
-    sessionStorage.removeItem("radar_chat_history")
-  }
-
   return (
     <div className="flex flex-col h-full w-full relative">
       {/* Chat History */}
