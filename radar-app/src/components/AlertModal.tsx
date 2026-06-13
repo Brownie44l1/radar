@@ -18,6 +18,9 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
 
   if (!isOpen) return null
 
+  const parsedTarget = parseFloat(targetPrice)
+  const alertDirection = parsedTarget > currentPrice ? "above" : parsedTarget < currentPrice ? "below" : null
+
   const handleSetAlert = async (e: React.FormEvent) => {
     e.preventDefault()
     const target = parseFloat(targetPrice)
@@ -76,6 +79,14 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
               ${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 9 })}
             </div>
           </div>
+
+          {alertDirection && (
+            <div className="text-[12px] font-[500] text-[#d0bcff]">
+              Alert when price goes <span className="font-bold uppercase">{alertDirection}</span> ${
+                parsedTarget.toLocaleString(undefined, { maximumFractionDigits: 9 })
+              }
+            </div>
+          )}
 
           <form onSubmit={handleSetAlert} className="flex flex-col gap-4">
             <div>

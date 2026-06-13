@@ -15,9 +15,18 @@ export default function WalletModal({ isOpen, onClose, tokenSymbol }: Props) {
 
   if (!isOpen) return null
 
+  const isValidSolanaAddress = (addr: string): boolean => {
+    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr.trim())
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!walletAddress.trim()) return
+
+    if (!isValidSolanaAddress(walletAddress.trim())) {
+      setMessage("Invalid Solana address format")
+      return
+    }
 
     setLoading(true)
     setMessage(null)
