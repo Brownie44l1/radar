@@ -13,11 +13,12 @@ app.use("*", async (c, next) => {
   c.header("Access-Control-Allow-Origin", allowedOrigin === "*" ? "*" : (c.req.header("Origin") || "*"))
   c.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS")
   c.header("Access-Control-Allow-Headers", "*")
-  if (c.req.method === "OPTIONS") {
-    c.header("Access-Control-Max-Age", "86400")
-    return c.newResponse(null, 204)
-  }
   await next()
+})
+
+app.on("OPTIONS", "*", (c) => {
+  c.header("Access-Control-Max-Age", "86400")
+  return c.newResponse(null, 204)
 })
 
 app.get("/health", (c) => c.json({ status: "ok", service: "radar-server" }))
