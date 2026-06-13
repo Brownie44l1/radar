@@ -83,7 +83,16 @@ export default function Research({ activeToken, onClearActiveToken }: Props) {
       setSelectedCard(data)
 
       // Show back button on Telegram WebApp
-      const tg = (window as any).Telegram?.WebApp
+      const tg = (window as unknown as {
+        Telegram?: {
+          WebApp?: {
+            BackButton?: {
+              show: () => void
+              hide: () => void
+            }
+          }
+        }
+      }).Telegram?.WebApp
       if (tg?.BackButton) {
         tg.BackButton.show()
       }
@@ -123,7 +132,16 @@ export default function Research({ activeToken, onClearActiveToken }: Props) {
       onClearActiveToken()
     }
     // Hide Telegram WebApp BackButton
-    const tg = (window as any).Telegram?.WebApp
+    const tg = (window as unknown as {
+      Telegram?: {
+        WebApp?: {
+          BackButton?: {
+            show: () => void
+            hide: () => void
+          }
+        }
+      }
+    }).Telegram?.WebApp
     if (tg?.BackButton) {
       tg.BackButton.hide()
     }

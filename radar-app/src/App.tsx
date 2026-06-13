@@ -11,7 +11,19 @@ export default function App() {
   const [activeToken, setActiveToken] = useState<{ address: string; chain: string } | null>(null)
 
   useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp
+    const tg = (window as unknown as {
+      Telegram?: {
+        WebApp?: {
+          ready: () => void
+          expand: () => void
+          BackButton?: {
+            onClick: (cb: () => void) => void
+            offClick: (cb: () => void) => void
+          }
+        }
+      }
+    }).Telegram?.WebApp
+
     if (tg) {
       tg.ready()
       tg.expand()
