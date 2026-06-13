@@ -1,33 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  /* Telegram theme variable fallbacks */
-  --tg-theme-bg-color: #ffffff;
-  --tg-theme-text-color: #000000;
-  --tg-theme-hint-color: #707579;
-  --tg-theme-link-color: #2481cc;
-  --tg-theme-button-color: #2481cc;
-  --tg-theme-button-text-color: #ffffff;
-  --tg-theme-secondary-bg-color: #f4f4f5;
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-bg: #051424;
+  --color-surface: #13131a;
+  --color-surface-2: #1b1b22;
+  --color-purple: #d0bcff;
+  --color-purple-light: #e9ddff;
+  --color-green: #10B981;
+  --color-red: #EF4444;
+  --color-amber: #F59E0B;
+  --color-text: #e4e1eb;
+  --color-text-dim: #cbc3d7;
+  --color-text-faint: #958ea0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --tg-theme-bg-color: #18181b;
-    --tg-theme-text-color: #f4f4f5;
-    --tg-theme-hint-color: #a1a1aa;
-    --tg-theme-link-color: #60a5fa;
-    --tg-theme-button-color: #3b82f6;
-    --tg-theme-button-text-color: #ffffff;
-    --tg-theme-secondary-bg-color: #27272a;
-  }
+:root {
+  --bg: #051424;
+  --surface: #13131a;
+  --surface-2: #1b1b22;
+  --border: rgba(137, 146, 155, 0.2);
+  --border-strong: rgba(137, 146, 155, 0.35);
+  --purple: #d0bcff;
+  --purple-light: #e9ddff;
+  --purple-dim: rgba(208, 188, 255, 0.12);
+  --green: #10B981;
+  --green-dim: rgba(16, 185, 129, 0.12);
+  --red: #EF4444;
+  --amber: #F59E0B;
+  --text: #e4e1eb;
+  --text-dim: #cbc3d7;
+  --text-faint: #958ea0;
+
+  --tg-theme-bg-color: #051424;
+  --tg-theme-text-color: #e4e1eb;
+  --tg-theme-secondary-bg-color: #1f1f26;
+  --tg-theme-button-color: #d0bcff;
+  --tg-theme-button-text-color: #3c0091;
+  --tg-theme-hint-color: #cbc3d7;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--tg-theme-bg-color);
-  color: var(--tg-theme-text-color);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 99px;
+}
+
+.glass-input {
+  background: rgba(39, 54, 71, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(137, 146, 155, 0.2);
+}
+
+@keyframes pulse-live {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pulse-dot {
+  animation: pulse-live 2s infinite ease-in-out;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

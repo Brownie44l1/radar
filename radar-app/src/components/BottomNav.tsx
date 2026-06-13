@@ -1,3 +1,5 @@
+import Icon from "./Icon"
+
 interface Props {
   active: "research" | "trending" | "chat"
   onTab: (tab: "research" | "trending" | "chat") => void
@@ -5,26 +7,31 @@ interface Props {
 
 export default function BottomNav({ active, onTab }: Props) {
   const tabs = [
-    { id: "research" as const, label: "Research", icon: "🔍" },
-    { id: "trending" as const, label: "Trending", icon: "🔥" },
-    { id: "chat" as const, label: "AI Chat", icon: "🤖" },
+    { id: "research" as const, label: "Research", icon: "search" },
+    { id: "trending" as const, label: "Trending", icon: "trending_up" },
+    { id: "chat" as const, label: "AI Chat", icon: "chatbot" },
   ]
   return (
-    <nav className="fixed bottom-0 left-0 right-0 flex border-t border-[var(--tg-theme-hint-color,#e5e7eb)] bg-[var(--tg-theme-bg-color,#ffffff)] z-50 shadow-lg">
-      {tabs.map(t => (
-        <button
-          key={t.id}
-          onClick={() => onTab(t.id)}
-          className={`flex-1 py-2 border-none bg-transparent cursor-pointer flex flex-col items-center gap-1 transition-all duration-200 ${
-            active === t.id
-              ? "opacity-100 font-semibold text-[var(--tg-theme-button-color,#3b82f6)] scale-105"
-              : "opacity-60 text-[var(--tg-theme-text-color,#000000)] hover:opacity-85"
-          }`}
-        >
-          <span className="text-xl">{t.icon}</span>
-          <span className="text-xs">{t.label}</span>
-        </button>
-      ))}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 bg-[#1f1f26] shadow-sm rounded-t-xl">
+      {tabs.map((t) => {
+        const isActive = active === t.id
+        return (
+          <button
+            key={t.id}
+            onClick={() => onTab(t.id)}
+            className={`flex flex-col items-center justify-center px-4 py-1 active:opacity-80 transition-opacity border-none bg-transparent cursor-pointer ${
+              isActive ? "text-[#e4e1eb]" : "text-[#cbc3d7] hover:text-[#d0bcff]"
+            }`}
+          >
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+              isActive ? "bg-[#454650]" : ""
+            }`}>
+              <Icon name={t.icon} size={22} />
+            </div>
+            <span className="text-[11px] font-[500] leading-none">{t.label}</span>
+          </button>
+        )
+      })}
     </nav>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { api } from "../lib/api"
+import Icon from "../components/Icon"
 
 interface Message {
   role: "user" | "assistant"
@@ -21,11 +22,20 @@ export default function AIChat() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     sessionStorage.setItem("radar_chat_history", JSON.stringify(messages))
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    const pending = sessionStorage.getItem("radar_pending_chat")
+    if (pending) {
+      sessionStorage.removeItem("radar_pending_chat")
+      handleSend(pending)
+    }
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -53,7 +63,7 @@ export default function AIChat() {
           { role: "assistant", content: "Sorry, I encountered an issue. Please try again." },
         ])
       }
-    } catch (e) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Error connecting to AI assistant." },
@@ -69,42 +79,32 @@ export default function AIChat() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] max-h-[800px] w-full">
-      {/* Header */}
-      <div className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 via-teal-500 to-emerald-500 bg-clip-text text-transparent">
-            AI Assistant
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">Instant crypto intelligence powered by Gemini</p>
-        </div>
-        {messages.length > 0 && (
-          <button
-            onClick={handleClear}
-            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-red-500 transition-colors"
-          >
-            Clear Chat
-          </button>
-        )}
-      </div>
-
-      {/* Messages / Welcome View */}
-      <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1 scrollbar-thin scrollbar-thumb-zinc-300 scrollbar-track-transparent">
+    <div className="flex flex-col h-full w-full relative">
+      {/* Chat History */}
+      <div
+        ref={chatRef}
+        className="flex-1 overflow-y-auto flex flex-col gap-6 px-0 pb-4 scrollbar-thin scrollbar-thumb-[#273647] scrollbar-track-transparent"
+        style={{ scrollbarWidth: "thin" }}
+      >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-blue-500 rounded-full filter blur-xl opacity-30 animate-pulse"></div>
-              <div className="relative text-5xl p-4 bg-zinc-100 dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                🤖
-              </div>
+          /* Welcome Screen */
+          <div className="flex flex-col items-center justify-center gap-4 py-8 flex-1">
+            <div className="w-16 h-16 rounded-full bg-[#1f1f26] flex items-center justify-center border border-[#d0bcff]/20">
+              <Icon name="smart_toy" size={32} className="text-[#d0bcff]" />
             </div>
-            <div className="space-y-2 max-w-sm">
-              <h2 className="text-lg font-bold text-[var(--tg-theme-text-color,#000000)]">
-                Ask Radar AI anything
-              </h2>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Scan tokens, understand smart money metrics, or get clear explanations of DeFi concepts instantly.
+            <div className="text-center max-w-[280px]">
+              <h2 className="text-[17px] font-[500] text-[#e4e1eb] font-display">AI Intelligence</h2>
+              <p className="text-[12px] font-[500] text-[#cbc3d7] mt-1">
+                Ask me anything about market sentiment, token safety, or project analysis.
               </p>
+            </div>
+            <div className="flex gap-2 flex-wrap justify-center">
+              <span className="px-3 py-1 bg-[#2a2931] rounded-full text-[11px] font-[500] text-[#d0bcff] border border-[#494454]/30">
+                Price Analysis
+              </span>
+              <span className="px-3 py-1 bg-[#2a2931] rounded-full text-[11px] font-[500] text-[#d0bcff] border border-[#494454]/30">
+                Risk Check
+              </span>
             </div>
 
             {/* Suggestion Chips */}
@@ -113,7 +113,7 @@ export default function AIChat() {
                 <button
                   key={suggestion}
                   onClick={() => handleSend(suggestion)}
-                  className="p-3 text-left rounded-2xl bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] hover:bg-zinc-200/80 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 border border-zinc-200/40 dark:border-zinc-800 transition-all duration-200 active:scale-95"
+                  className="p-3 text-left rounded-2xl bg-[#1f1f26] hover:bg-[#2a2931] text-[12px] font-[500] text-[#cbc3d7] border border-[#494454]/20 transition-all active:scale-95 cursor-pointer"
                 >
                   {suggestion}
                 </button>
@@ -121,73 +121,115 @@ export default function AIChat() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          /* Messages */
+          <>
             {messages.map((m, idx) => (
               <div
                 key={idx}
                 className={`flex w-full ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                <div
-                  className={`max-w-[85%] rounded-3xl p-4 text-sm leading-relaxed shadow-sm ${
-                    m.role === "user"
-                      ? "bg-[var(--tg-theme-button-color,#3b82f6)] text-[var(--tg-theme-button-text-color,#ffffff)] font-medium rounded-tr-none"
-                      : "bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] text-[var(--tg-theme-text-color,#000000)] border border-zinc-200/40 dark:border-zinc-800/60 rounded-tl-none whitespace-pre-line"
-                  }`}
-                >
-                  {m.content}
-                </div>
+                {m.role === "user" ? (
+                  <div className="bg-[#3f465c] rounded-[18px_18px_4px_18px] max-w-[85%] p-4 shadow-sm">
+                    <p className="text-[14px] font-[400] text-[#e4e1eb] leading-relaxed whitespace-pre-line">
+                      {m.content}
+                    </p>
+                    <div className="flex justify-end mt-1">
+                      <span className="text-[10px] text-[#cbc3d7]/60">
+                        {new Date().getHours().toString().padStart(2, "0")}:
+                        {new Date().getMinutes().toString().padStart(2, "0")}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 max-w-[90%]">
+                    <div className="bg-[#122131] border border-[#273647] rounded-[18px_18px_18px_4px] max-w-[85%] p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Icon name="radar" size={16} className="text-[#d0bcff]" />
+                        <span className="text-[11px] font-[600] text-[#d0bcff] uppercase tracking-wider font-display">
+                          Radar Analysis
+                        </span>
+                      </div>
+                      <p className="text-[14px] font-[400] text-[#e4e1eb] leading-relaxed whitespace-pre-line">
+                        {m.content}
+                      </p>
+                      <div className="flex justify-start mt-2">
+                        <span className="text-[10px] text-[#cbc3d7]/50">
+                          {new Date().getHours().toString().padStart(2, "0")}:
+                          {new Date().getMinutes().toString().padStart(2, "0")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 
-            {/* Thinking indicator */}
+            {/* Typing Indicator */}
             {loading && (
-              <div className="flex w-full justify-start">
-                <div className="bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] text-[var(--tg-theme-text-color,#000000)] border border-zinc-200/40 dark:border-zinc-800/60 rounded-3xl rounded-tl-none p-4 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 animate-bounce"></span>
+              <div className="flex justify-start w-full">
+                <div className="bg-[#122131] border border-[#273647] rounded-[18px_18px_18px_4px] px-4 py-3 flex gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#d0bcff]/60 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2 h-2 rounded-full bg-[#d0bcff]/60 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2 h-2 rounded-full bg-[#d0bcff]/60 animate-bounce" />
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
-          </div>
+          </>
         )}
       </div>
 
-      {/* Input Field */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          handleSend(input)
-        }}
-        className="pt-2"
-      >
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={loading}
-            placeholder="Ask AI about crypto tokens..."
-            className="w-full py-3.5 pl-4 pr-12 rounded-2xl border border-[var(--tg-theme-hint-color,#e5e7eb)] bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] text-[var(--tg-theme-text-color,#000000)] placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color,#3b82f6)] focus:border-transparent transition-all duration-300 shadow-sm text-sm"
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="absolute right-2 p-2 rounded-xl bg-[var(--tg-theme-button-color,#3b82f6)] text-[var(--tg-theme-button-text-color,#ffffff)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            <svg
-              className="h-5.5 w-5.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      {/* Message Input Field */}
+      <div className="sticky bottom-0 left-0 w-full py-3 bg-[#051424]/80 backdrop-blur-lg border-t border-[#34343c]/10">
+        <div className="flex items-center gap-3 bg-[#1f1f26] rounded-full px-4 py-1.5 border border-[#494454]/20 focus-within:border-[#d0bcff]/40 transition-colors">
+          <button className="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors border-none bg-transparent cursor-pointer p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M9 12h6" />
+              <path d="M12 9v6" />
             </svg>
           </button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSend(input)
+            }}
+            className="flex-1 flex items-center gap-2"
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={loading}
+              placeholder="Ask about crypto..."
+              className="flex-1 bg-transparent border-none text-[14px] text-[#e4e1eb] focus:outline-none placeholder:text-[#cbc3d7]/50 py-2"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors border-none bg-transparent cursor-pointer p-1"
+              >
+                
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className="bg-[#d0bcff] text-[#3c0091] p-2 rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-lg disabled:opacity-50 cursor-pointer border-none"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+
+      {/* Gradient Background Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] opacity-20">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#d0bcff]/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-40 left-0 w-48 h-48 bg-[#9b7fed]/10 rounded-full blur-[80px]" />
+      </div>
     </div>
   )
 }
