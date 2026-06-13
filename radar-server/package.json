@@ -1,0 +1,24 @@
+{
+  "name": "radar-server",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@supabase/supabase-js": "^2.108.1",
+    "@upstash/redis": "^1.38.0",
+    "grammy": "^1.43.0",
+    "hono": "^4.12.25"
+  },
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "test": "bun test"
+  }
+}
