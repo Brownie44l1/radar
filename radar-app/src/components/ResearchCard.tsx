@@ -142,7 +142,7 @@ export default function ResearchCard({ card, isLive, onAskAI }: Props) {
       {/* Smart Money (Solana only) */}
       {isSolana && smartMoneyMatches.length > 0 && (
         <div className="mx-4 mb-4 flex items-center gap-2.5 p-3 bg-[rgba(208,188,255,0.12)] border border-[rgba(208,188,255,0.2)] rounded-lg">
-          <i className="ti ti-radar-2 text-[#d0bcff] text-[18px]"></i>
+          <Icon name="radar_2" size={18} className="text-[#d0bcff]" />
           <div className="text-[12.5px] leading-relaxed text-[#e4e1eb]">
             <b>{smartMoneyMatches.length} tracked wallets</b> hold this token
           </div>
@@ -173,7 +173,7 @@ export default function ResearchCard({ card, isLive, onAskAI }: Props) {
           onClick={() => onAskAI(tokenData.symbol)}
           className="w-full h-10 rounded-lg bg-[rgba(208,188,255,0.12)] text-[#d0bcff] text-[13px] font-[600] flex items-center justify-center gap-2 active:scale-95 transition-transform border border-[rgba(208,188,255,0.2)] cursor-pointer"
         >
-          <i className="ti ti-message-circle-2 text-[16px]"></i>
+          <Icon name="message_circle" size={16} />
           Ask AI about ${tokenData.symbol.toUpperCase()}
         </button>
       </div>

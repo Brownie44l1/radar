@@ -34,4 +34,4 @@ export default {
   fetch: app.fetch,
 }
 
-console.log("✅ Radar server running on port 3001")
+console.log(`✅ Radar server running on port ${process.env.PORT || 3001}`)

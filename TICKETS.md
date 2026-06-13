@@ -77,11 +77,11 @@ Everything else depends on this. Build first, build solid.
 - Returns verdict string: ✅ No major flags / ⚠️ Proceed with caution / 🚨 Rug signals detected
 - Unit testable (pure function, no side effects)
 
-### RADAR-010 — Claude AI service
+### RADAR-010 — Gemini AI service
 **Acceptance criteria:**
-- `askClaude(message, history)` sends message + session history to Claude API
-- Uses claude-haiku-3-5 model
-- System prompt positions Claude as a crypto research assistant aware of Radar's context
+- `askGemini(message, history)` sends message + session history to Gemini API
+- Uses gemini-2.5-flash model
+- System prompt positions Gemini as a crypto research assistant aware of Radar's context
 - Returns response text
 - Errors return a fallback message — never crash
 
@@ -151,10 +151,10 @@ Everything else depends on this. Build first, build solid.
 **Acceptance criteria:**
 - Chat interface with message bubbles (user right, AI left)
 - Input bar fixed to bottom
-- Loading indicator while Claude responds
+- Loading indicator while Gemini responds
 - Session history maintained (resets on app close)
 - Suggested prompts shown on empty state: "Is $WIF risky?", "What is liquidity?", "Explain rug pulls"
-- Error state if Claude API fails: "AI unavailable — try again"
+- Error state if Gemini API fails: "AI unavailable — try again"
 
 ---
 
