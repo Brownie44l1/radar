@@ -8,11 +8,16 @@ import walletRoutes from "./routes/wallets"
 const app = new Hono()
 
 const allowedOrigin = process.env.FRONTEND_URL || "*"
+
 app.use("*", async (c, next) => {
+  c.header("Access-Control-Allow-Origin", allowedOrigin === "*" ? "*" : (c.req.header("Origin") || "*"))
+  c.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS")
+  c.header("Access-Control-Allow-Headers", "*")
+  if (c.req.method === "OPTIONS") {
+    c.header("Access-Control-Max-Age", "86400")
+    return c.newResponse(null, 204)
+  }
   await next()
-  c.res.headers.set("Access-Control-Allow-Origin", allowedOrigin === "*" ? "*" : (c.req.header("Origin") || "*"))
-  c.res.headers.set("Access-Control-Allow-Methods", "GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS")
-  c.res.headers.set("Access-Control-Allow-Headers", "*")
 })
 
 app.get("/health", (c) => c.json({ status: "ok", service: "radar-server" }))
