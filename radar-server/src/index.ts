@@ -8,10 +8,11 @@ import { startBot, startAlertPoller } from "./bot/index"
 
 const app = new Hono()
 
-const allowedOrigin = process.env.FRONTEND_URL || "*"
+const rawAllowed = process.env.FRONTEND_URL || "*"
+const allowedOrigin = rawAllowed.replace(/\/$/, "")
 
 app.use("*", async (c, next) => {
-  const origin = c.req.header("Origin") || "*"
+  const origin = (c.req.header("Origin") || "*").replace(/\/$/, "")
   const allowed = allowedOrigin === "*" ? "*" : (origin === allowedOrigin ? origin : "")
 
   c.header("Access-Control-Allow-Origin", allowed || allowedOrigin)
