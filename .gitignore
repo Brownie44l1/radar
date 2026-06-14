@@ -1,6 +1,8 @@
 # Dependency directories
 node_modules/
 jspm_packages/
+yarn.lock
+yarn-error.log
 
 # Build outputs
 dist/

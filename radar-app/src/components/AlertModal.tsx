@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { api } from "../lib/api"
+import Icon from "./Icon"
 
 interface Props {
   isOpen: boolean
@@ -17,6 +18,9 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
 
   if (!isOpen) return null
 
+  const parsedTarget = parseFloat(targetPrice)
+  const alertDirection = parsedTarget > currentPrice ? "above" : parsedTarget < currentPrice ? "below" : null
+
   const handleSetAlert = async (e: React.FormEvent) => {
     e.preventDefault()
     const target = parseFloat(targetPrice)
@@ -31,7 +35,6 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
     try {
       const res = await api.setAlert(tokenAddress, target, tokenSymbol, tokenChain)
       if (res) {
-        // Trigger haptic feedback if available on Telegram
         const tg = (window as any).Telegram?.WebApp
         if (tg?.HapticFeedback) {
           tg.HapticFeedback.notificationOccurred("success")
@@ -45,7 +48,7 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
       } else {
         setMessage("Failed to set alert. Please try again.")
       }
-    } catch (err) {
+    } catch {
       setMessage("An unexpected error occurred.")
     } finally {
       setLoading(false)
@@ -53,50 +56,82 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-3xl border border-[var(--tg-theme-hint-color,#e5e7eb)] bg-[var(--tg-theme-bg-color,#ffffff)] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-[var(--tg-theme-text-color,#000000)]">Set Price Alert</h3>
-          <button onClick={onClose} className="p-1 rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mb-4 py-2 px-4 rounded-2xl bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] text-sm">
-          <div className="text-xs text-zinc-400">Current Price</div>
-          <div className="font-semibold text-base">${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 9 })}</div>
-        </div>
-
-        <form onSubmit={handleSetAlert} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 mb-1.5">Target Price (USD)</label>
-            <input
-              type="number"
-              step="any"
-              value={targetPrice}
-              onChange={(e) => setTargetPrice(e.target.value)}
-              placeholder="e.g. 0.000025 or 1.50"
-              className="w-full py-2.5 px-4 rounded-2xl border border-[var(--tg-theme-hint-color,#e5e7eb)] bg-transparent text-[var(--tg-theme-text-color,#000000)] placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color,#3b82f6)] text-sm"
-              required
-            />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-[#051424]/80 backdrop-blur-sm transition-opacity">
+      <div className="w-full max-w-md bg-[#1f1f26] rounded-xl border border-[#494454]/30 shadow-lg overflow-hidden">
+        <div className="p-4 flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-[17px] font-[700] text-[#e4e1eb]">Set Price Alert</h2>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-[#34343c]/50 text-[#cbc3d7] border-none bg-transparent cursor-pointer"
+            >
+              <Icon name="close" />
+            </button>
           </div>
 
-          {message && (
-            <div className={`p-3 rounded-2xl text-xs font-medium ${message.includes("Success") ? "bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400" : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400"}`}>
-              {message}
+          <p className="text-[14px] font-[400] text-[#cbc3d7]">
+            Get a Telegram DM when ${tokenSymbol.toUpperCase()} hits your target price.
+          </p>
+
+          <div className="py-2 px-4 rounded-lg glass-input text-sm">
+            <div className="text-[11px] font-[500] text-[#958ea0]">Current Price</div>
+            <div className="font-semibold text-base text-[#e4e1eb]">
+              ${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 9 })}
+            </div>
+          </div>
+
+          {alertDirection && (
+            <div className="text-[12px] font-[500] text-[#d0bcff]">
+              Alert when price goes <span className="font-bold uppercase">{alertDirection}</span> ${
+                parsedTarget.toLocaleString(undefined, { maximumFractionDigits: 9 })
+              }
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-2xl font-semibold bg-[var(--tg-theme-button-color,#3b82f6)] text-[var(--tg-theme-button-text-color,#ffffff)] hover:opacity-90 disabled:opacity-50 transition-all duration-200 text-sm shadow-sm"
-          >
-            {loading ? "Setting Alert..." : "Confirm Alert"}
-          </button>
-        </form>
+          <form onSubmit={handleSetAlert} className="flex flex-col gap-4">
+            <div>
+              <label className="text-[12px] font-[600] text-[#958ea0] mb-1 block">Target Price (USD)</label>
+              <div className="flex items-center glass-input h-12 rounded-lg focus-within:ring-2 focus-within:ring-[#d0bcff]/50 transition-all">
+                <span className="pl-5 text-[#cbc3d7] text-base font-semibold">$</span>
+                <input
+                  type="number"
+                  step="any"
+                  value={targetPrice}
+                  onChange={(e) => setTargetPrice(e.target.value)}
+                  placeholder="e.g. 0.000025"
+                  className="w-full h-full bg-transparent pr-4 rounded-lg text-base text-[#e4e1eb] font-semibold focus:outline-none placeholder:text-[#cbc3d7]/60"
+                  required
+                />
+              </div>
+            </div>
+
+            {message && (
+              <div className={`p-3 rounded-lg text-[12px] font-medium ${
+                message.includes("Success")
+                  ? "bg-[rgba(16,185,129,0.12)] text-[#10B981]"
+                  : "bg-[rgba(239,68,68,0.12)] text-[#EF4444]"
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-xl bg-[#d0bcff] text-[#3c0091] text-[16px] font-[600] flex items-center justify-center active:scale-95 transition-transform shadow-sm border-none cursor-pointer disabled:opacity-50"
+            >
+              {loading ? "Setting Alert..." : "Set Alert"}
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full h-12 rounded-xl bg-transparent text-[#e4e1eb] text-[16px] font-[600] flex items-center justify-center border border-[#494454]/50 active:scale-95 transition-transform cursor-pointer"
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import BottomNav from "./components/BottomNav"
 import Research from "./pages/Research"
 import Trending from "./pages/Trending"
 import AIChat from "./pages/AIChat"
+import Icon from "./components/Icon"
 
 type Tab = "research" | "trending" | "chat"
 
@@ -28,14 +29,14 @@ export default function App() {
       tg.ready()
       tg.expand()
 
-      // Set up back button handler that dispatches a global window event
-      if (tg.BackButton) {
+      const backButton = tg.BackButton
+      if (backButton) {
         const handleBackClick = () => {
           window.dispatchEvent(new Event("tma-back-button"))
         }
-        tg.BackButton.onClick(handleBackClick)
+        backButton.onClick(handleBackClick)
         return () => {
-          tg.BackButton.offClick(handleBackClick)
+          backButton.offClick(handleBackClick)
         }
       }
     }
@@ -46,15 +47,39 @@ export default function App() {
     setTab("research")
   }
 
+  const handleAskAI = (symbol: string) => {
+    sessionStorage.setItem("radar_pending_chat", `Tell me more about $${symbol.toUpperCase()}`)
+    setTab("chat")
+  }
+
   return (
-    <div className="pb-16 min-h-screen bg-[var(--tg-theme-bg-color,#ffffff)] text-[var(--tg-theme-text-color,#000000)] font-sans antialiased selection:bg-[var(--tg-theme-button-color,#3b82f6)] selection:text-[var(--tg-theme-button-text-color,#ffffff)]">
-      <main className="max-w-md mx-auto min-h-screen px-4 pt-4">
+    <div className="min-h-screen bg-[#051424] text-[#e4e1eb] font-sans antialiased overflow-x-hidden">
+      {/* TopAppBar */}
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-4 h-14 bg-[#1f1f26]">
+        <div className="flex items-center gap-2">
+          <Icon name="radar" className="text-[#d0bcff]" />
+          <h1 className="text-[20px] font-[600] font-display font-bold text-[#d0bcff]">Radar</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <button className="active:scale-95 transition-transform hover:bg-[#34343c]/50 p-2 rounded-full border-none bg-transparent cursor-pointer">
+            
+          </button>
+        </div>
+      </header>
+
+      {/* Content Canvas */}
+      <main className="pt-20 pb-20 px-4 flex flex-col gap-6 max-w-md mx-auto">
         {tab === "research" && (
-          <Research activeToken={activeToken} onClearActiveToken={() => setActiveToken(null)} />
+          <Research
+            activeToken={activeToken}
+            onClearActiveToken={() => setActiveToken(null)}
+            onAskAI={handleAskAI}
+          />
         )}
         {tab === "trending" && <Trending onSelectToken={handleSelectToken} />}
         {tab === "chat" && <AIChat />}
       </main>
+
       <BottomNav active={tab} onTab={setTab} />
     </div>
   )

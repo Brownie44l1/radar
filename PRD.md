@@ -15,7 +15,7 @@ SwiftyEx users have no research layer inside Telegram. Before buying a token the
 A Telegram Mini App with three screens:
 1. **Research** — paste or search any token, get an instant research card with risk verdict
 2. **Trending** — live feed of trending tokens across chains
-3. **AI Chat** — ask anything about crypto, get an intelligent answer powered by Claude
+3. **AI Chat** — ask anything about crypto, get an intelligent answer powered by Gemini
 
 ## Core user flows (happy path only)
 
@@ -37,7 +37,7 @@ A Telegram Mini App with three screens:
 ### Flow 3 — AI chat
 1. User taps AI Chat tab
 2. User types a question: "Is $WIF a good buy right now?" or "Explain what liquidity means"
-3. Claude API responds with concise, helpful answer
+3. Gemini API responds with concise, helpful answer
 4. Conversation history persists for the session
 
 ### Flow 4 — Price alert
@@ -100,7 +100,7 @@ Flags: Moderate holder concentration
 | Criteria | How Radar addresses it |
 |---|---|
 | Innovation & Creativity | AI chat + risk verdict inside Telegram is novel for Nigerian market |
-| Technical Execution | Full stack: Mini App frontend + Bun backend + Redis + Supabase + Claude API |
+| Technical Execution | Full stack: Mini App frontend + Bun backend + Redis + Supabase + Gemini API |
 | Product Quality | Three complete, polished screens |
 | User Experience | Zero context switching — research lives where trading happens |
 | Practical Relevance | Direct companion to SwiftyEx's stated roadmap |

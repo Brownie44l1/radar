@@ -1,9 +1,23 @@
 import { useState, useEffect } from "react"
 import { api } from "../lib/api"
+import Icon from "../components/Icon"
 import type { TrendingToken } from "../types"
 
 interface Props {
   onSelectToken: (address: string, chain: string) => void
+}
+
+function formatVolume(vol: number): string {
+  if (vol >= 1_000_000_000) return `$${(vol / 1_000_000_000).toFixed(1)}B`
+  if (vol >= 1_000_000) return `$${(vol / 1_000_000).toFixed(1)}M`
+  if (vol >= 1_000) return `$${(vol / 1_000).toFixed(1)}K`
+  return `$${vol.toFixed(0)}`
+}
+
+function formatPrice(price: number): string {
+  if (price < 0.00001) return price.toExponential(2)
+  if (price < 1) return price.toLocaleString(undefined, { maximumFractionDigits: 6 })
+  return price.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
 export default function Trending({ onSelectToken }: Props) {
@@ -21,7 +35,7 @@ export default function Trending({ onSelectToken }: Props) {
       } else {
         setError("Failed to fetch trending tokens.")
       }
-    } catch (e) {
+    } catch {
       setError("An error occurred while loading trending tokens.")
     } finally {
       setLoading(false)
@@ -33,114 +47,119 @@ export default function Trending({ onSelectToken }: Props) {
   }, [])
 
   return (
-    <div className="w-full space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center py-2">
+    <div className="w-full">
+      {/* Live Indicator & Title */}
+      <div className="flex justify-between items-end mb-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
-            Trending Feed
+          <h1 className="text-[22px] font-[700] font-display tracking-tight text-[#e4e1eb]">
+            Trending now
           </h1>
-          <p className="text-xs text-zinc-400 mt-1">
-            Real-time trending tokens across Solana & Base
+          <p className="text-[12px] font-[400] text-[#cbc3d7] flex items-center gap-1.5 mt-1">
+            <span className="w-2 h-2 rounded-full bg-[#d0bcff] animate-pulse" />
+            Live feed from DEXScreener
           </p>
         </div>
-        <button
-          onClick={fetchTrending}
-          disabled={loading}
-          className="p-2.5 rounded-2xl bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] border border-[var(--tg-theme-hint-color,#e5e7eb)] hover:opacity-80 transition-all active:scale-95 disabled:opacity-50"
-          title="Refresh Feed"
-        >
-          <svg
-            className={`w-4 h-4 text-[var(--tg-theme-text-color,#000000)] ${loading ? "animate-spin" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M21 3v5h-5"
-            />
+        <div className="bg-[#2a2931] px-3 py-1.5 rounded-full border border-[#494454]/30 flex items-center gap-2">
+          <span className="text-[12px] font-[600] text-[#e4e1eb]">All Chains</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#cbc3d7]">
+            <path d="m6 9 6 6 6-6" />
           </svg>
-        </button>
+        </div>
       </div>
 
       {/* Error State */}
       {error && (
-        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-sm font-medium">
-          ⚠️ {error}
+        <div className="p-4 rounded-xl bg-[rgba(239,68,68,0.12)] text-[#EF4444] border border-[#EF4444]/20 text-sm font-medium mb-4">
+          <Icon name="warning" size={16} className="align-text-bottom mr-1" />
+          {error}
         </div>
       )}
 
+      {/* Token Table Header */}
+      <div className="border-b border-[#494454]/20 py-2 flex items-center text-[#cbc3d7] text-[12px] font-[600] uppercase tracking-wider">
+        <div className="w-8 text-center">#</div>
+        <div className="flex-1 ml-2">Token / Chain</div>
+        <div className="w-24 text-right">Price</div>
+        <div className="w-20 text-right">24h</div>
+      </div>
+
       {/* Loading Skeleton */}
       {loading ? (
-        <div className="flex flex-col">
+        <div className="space-y-0">
           {[1, 2, 3, 4, 5].map((idx) => (
             <div key={idx} className="flex items-center px-0 py-4 border-b border-[#494454]/10 animate-pulse">
-              <div className="w-8 h-4 bg-[#34343c] rounded ml-2" />
-              <div className="flex-1 ml-2 space-y-1.5">
-                <div className="h-4 w-20 bg-[#34343c] rounded" />
-                <div className="h-3 w-28 bg-[#34343c] rounded" />
+              <div className="w-8 text-center" />
+              <div className="flex-1 ml-2 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#34343c]" />
+                <div className="space-y-1.5">
+                  <div className="h-4 w-16 bg-[#34343c] rounded" />
+                  <div className="h-3 w-20 bg-[#34343c] rounded" />
+                </div>
               </div>
-              <div className="space-y-2 flex flex-col items-end">
-                <div className="h-4 w-20 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
-                <div className="h-3 w-12 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
+              <div className="w-24 text-right space-y-1">
+                <div className="h-4 w-16 bg-[#34343c] rounded ml-auto" />
+                <div className="h-3 w-12 bg-[#34343c] rounded ml-auto" />
+              </div>
+              <div className="w-20 text-right">
+                <div className="h-4 w-12 bg-[#34343c] rounded ml-auto" />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        /* Token List */
-        <div className="space-y-2.5">
-          {tokens.map((token, index) => {
-            const isPositive = token.priceChange24h >= 0
-            return (
-              <button
-                key={`${token.chain}-${token.address}-${index}`}
-                onClick={() => onSelectToken(token.address, token.chain)}
-                className="w-full p-4 flex justify-between items-center text-left bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-[var(--tg-theme-hint-color,#e5e7eb)] rounded-3xl transition-all duration-300 active:scale-[0.99] group"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Rank badge */}
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-200/80 dark:bg-zinc-800 text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
+        <>
+          {/* Token List */}
+          <div className="flex flex-col">
+            {tokens.map((token, index) => {
+              const isPositive = token.priceChange24h >= 0
+              return (
+                <button
+                  key={`${token.chain}-${token.address}-${index}`}
+                  onClick={() => onSelectToken(token.address, token.chain)}
+                  className="flex items-center px-0 py-4 transition-colors border-b border-[#494454]/10 active:bg-[rgba(39,54,71,0.5)] text-left w-full border-none bg-transparent cursor-pointer"
+                >
+                  <div className="w-8 text-center text-[15px] font-[400] text-[#cbc3d7] font-semibold">
                     {index + 1}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-sm text-[var(--tg-theme-text-color,#000000)] group-hover:text-[var(--tg-theme-link-color,#3b82f6)] transition-colors">
+                  <div className="flex-1 ml-2 flex items-center gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[14px] font-[500] text-[#e4e1eb]">
                         ${token.symbol.toUpperCase()}
-                      </span>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-500 capitalize">
-                        {token.chain}
-                      </span>
+                      </div>
+                      <div className="text-[11px] font-[500] text-[#cbc3d7] truncate">
+                        {token.name}
+                      </div>
                     </div>
-                    <span className="text-xs text-zinc-400 block mt-0.5 max-w-[150px] truncate">
-                      {token.name}
-                    </span>
                   </div>
-                </div>
+                  <div className="w-24 text-right">
+                    <div className="text-[14px] font-[400] text-[#e4e1eb] font-mono">
+                      ${formatPrice(token.price)}
+                    </div>
+                    <div className="text-[11px] text-[#cbc3d7] uppercase font-bold tracking-tighter">
+                      {formatVolume(token.volume24h)} Vol
+                    </div>
+                  </div>
+                  <div className="w-20 text-right">
+                    <div className={`text-[13px] font-bold font-mono ${isPositive ? "text-[#d0bcff]" : "text-[#EF4444]"}`}>
+                      {isPositive ? "+" : ""}{token.priceChange24h.toFixed(1)}%
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
 
-                <div className="text-right">
-                  <span className="font-semibold text-sm block text-[var(--tg-theme-text-color,#000000)]">
-                    ${token.price.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-                  </span>
-                  <div className="flex items-center justify-end gap-1 mt-0.5">
-                    <span
-                      className={`text-xs font-bold ${
-                        isPositive ? "text-emerald-500" : "text-rose-500"
-                      }`}
-                    >
-                      {isPositive ? "+" : ""}
-                      {token.priceChange24h.toFixed(1)}%
-                    </span>
-                    <span className="text-[10px] text-zinc-400">• Vol: ${token.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
+          {/* Load More */}
+          <div className="py-4 flex justify-center">
+            <button
+              onClick={fetchTrending}
+              disabled={loading}
+              className="bg-[#2a2931] hover:bg-[#34343c]/50 text-[#e4e1eb] text-[12px] font-[600] px-6 py-2.5 rounded-full transition-all active:scale-95 border border-[#494454]/30 disabled:opacity-50 cursor-pointer"
+            >
+              Load more trending
+            </button>
+          </div>
+        </>
       )}
     </div>
   )

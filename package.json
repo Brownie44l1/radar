@@ -1,0 +1,11 @@
+{
+  "name": "radar",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd radar-server && bun install",
+    "dev": "bun run --cwd radar-server dev",
+    "start": "bun run --cwd radar-server start",
+    "build": "bun run --cwd radar-app build",
+    "test": "bun run --cwd radar-server test"
+  }
+}

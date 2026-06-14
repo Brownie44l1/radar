@@ -2,5 +2,5 @@
   <circle cx="256" cy="256" r="256" fill="#d0bcff"/>
   <text x="256" y="278" text-anchor="middle" dominant-baseline="middle"
         font-family="Space Grotesk, Arial, sans-serif" font-weight="700"
-        font-size="260" fill="#0A0A0F">R</text>
+        font-size="360" fill="#0A0A0F">R</text>
 </svg>

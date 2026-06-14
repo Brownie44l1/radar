@@ -19,6 +19,7 @@ export interface ResearchCard {
   riskScore: number
   verdict: string
   isLive: boolean
+  tokenAgeHours?: number
 }
 
 export interface TrendingToken {

@@ -14,7 +14,7 @@
 | Hosting (backend) | Render | Free tier, supports always-on Bun processes via root `package.json` |
 | Price / liquidity | DEXScreener API | Free, no API key, supports all major chains + Solana |
 | On-chain data | Helius RPC (Solana) | Free tier — holder data, bundle detection |
-| AI chat | Anthropic Claude API (claude-haiku-3-5) | Cheapest Claude model, fast responses, more than capable for crypto Q&A |
+| AI chat | Google Gemini API (gemini-2.5-flash) | Fast, capable, free tier available for crypto Q&A |
 | Bot layer | grammY + Bun | Telegram bot handles price alert DMs — Mini App is the UI layer |
 
 ## Why Bun over Node
@@ -40,7 +40,7 @@ Telegram Client
       │    Redis        Postgres      │
       │    (cache)      (persist)     ├── DEXScreener
       │                               ├── Helius RPC
-      │                               └── Claude API
+      │                               └── Gemini API
       │
       └── Bot (grammY — same Bun process as backend)
                 │
@@ -96,7 +96,7 @@ radar-server/                      # Bun + Hono backend
 │   │   ├── bundleDetect.ts        # bundle detection logic
 │   │   ├── smartMoney.ts          # smart money wallet matching
 │   │   ├── riskScore.ts           # risk score engine
-│   │   └── claude.ts              # Claude API client
+│   │   └── gemini.ts              # Gemini API client
 │   ├── cache/
 │   │   └── redis.ts               # Upstash Redis helpers
 │   ├── db/
@@ -121,7 +121,7 @@ radar-server/                      # Bun + Hono backend
 | GET | /token/:address | Fetch token research card by contract address |
 | GET | /token/search/:query | Search token by ticker or name |
 | GET | /trending | Fetch trending tokens |
-| POST | /chat | Send message to Claude, get response |
+| POST | /chat | Send message to Gemini, get response |
 | POST | /alerts | Create price alert |
 | DELETE | /alerts/:id | Cancel alert |
 | POST | /wallets/submit | Submit smart money wallet |
