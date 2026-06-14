@@ -10,12 +10,13 @@ app.get("/", async (c) => {
       data: tokens || [],
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Trending route error:", e)
+    const message = e instanceof Error ? e.message : "Internal server error"
     return c.json(
       {
         data: null,
-        error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" },
+        error: { message, code: "INTERNAL_ERROR" },
       },
       500
     )

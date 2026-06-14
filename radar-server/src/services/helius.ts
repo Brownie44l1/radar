@@ -2,6 +2,19 @@ import { cacheGet, cacheSet } from "../cache/redis"
 import { CACHE_TTL } from "../constants/riskWeights"
 import type { HolderData } from "../types"
 
+interface RpcResponse<T> {
+  result?: T
+  error?: { message: string }
+}
+
+interface SupplyResult {
+  value: { amount: string }
+}
+
+interface LargestResult {
+  value: { address: string; amount: string; decimals: number }[]
+}
+
 export async function getTopHolders(address: string): Promise<HolderData | null> {
   const cacheKey = `holders:${address.toLowerCase()}`
   const cached = await cacheGet<HolderData>(cacheKey)
@@ -16,7 +29,6 @@ export async function getTopHolders(address: string): Promise<HolderData | null>
   const rpcUrl = `https://mainnet.helius-rpc.com/?api-key=${apiKey}`
 
   try {
-    // Fetch supply and largest accounts in parallel
     const [supplyRes, largestRes] = await Promise.all([
       fetch(rpcUrl, {
         method: "POST",
@@ -45,8 +57,8 @@ export async function getTopHolders(address: string): Promise<HolderData | null>
       return null
     }
 
-    const supplyData = await supplyRes.json()
-    const largestData = await largestRes.json()
+    const supplyData = await supplyRes.json() as RpcResponse<SupplyResult>
+    const largestData = await largestRes.json() as RpcResponse<LargestResult>
 
     if (supplyData.error || largestData.error) {
       console.warn("Helius RPC returned error:", supplyData.error || largestData.error)
@@ -57,7 +69,7 @@ export async function getTopHolders(address: string): Promise<HolderData | null>
     if (totalSupply === 0) return null
 
     const accounts = largestData.result?.value || []
-    const topHolders = accounts.slice(0, 10).map((acc: any) => {
+    const topHolders = accounts.slice(0, 10).map((acc) => {
       const balance = parseFloat(acc.amount || "0")
       const percent = totalSupply > 0 ? (balance / totalSupply) * 100 : 0
       return {
@@ -67,7 +79,7 @@ export async function getTopHolders(address: string): Promise<HolderData | null>
     })
 
     const topHolderPercent = parseFloat(
-      topHolders.reduce((sum: number, holder: any) => sum + holder.percent, 0).toFixed(2)
+      topHolders.reduce((sum: number, holder) => sum + holder.percent, 0).toFixed(2)
     )
 
     const holderData: HolderData = {

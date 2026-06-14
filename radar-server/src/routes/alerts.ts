@@ -7,28 +7,23 @@ const app = new Hono()
 
 // Helper to validate Telegram init data
 function getTelegramUser(authHeader: string | undefined) {
+  if (!authHeader) return null
+
   const botToken = process.env.TELEGRAM_BOT_TOKEN
-  const isDev = process.env.NODE_ENV === "development" || !botToken
-
-  // In development, if no auth header or token, return a mock user
-  const mockUser = { id: 123456789, username: "mock_user", first_name: "Mock" }
-
-  if (!authHeader) {
-    return isDev ? mockUser : null
-  }
+  if (!botToken) return null
 
   const rawInitData = authHeader.replace(/^tma\s+/i, "")
 
   try {
     const params = new URLSearchParams(rawInitData)
     const hash = params.get("hash")
-    if (!hash) return isDev ? mockUser : null
+    if (!hash) return null
 
     params.delete("hash")
     const sortedKeys = Array.from(params.keys()).sort()
     const dataCheckString = sortedKeys.map((key) => `${key}=${params.get(key)}`).join("\n")
 
-    const secretKey = crypto.createHmac("sha256", "WebAppData").update(botToken!).digest()
+    const secretKey = crypto.createHmac("sha256", "WebAppData").update(botToken).digest()
     const calculatedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex")
 
     if (calculatedHash === hash) {
@@ -41,7 +36,7 @@ function getTelegramUser(authHeader: string | undefined) {
     console.error("Init data validation error:", e)
   }
 
-  return isDev ? mockUser : null
+  return null
 }
 
 // POST /alerts - Create price alert
@@ -100,9 +95,10 @@ app.post("/", async (c) => {
       data,
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Create alert error:", e)
-    return c.json({ data: null, error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" } }, 500)
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return c.json({ data: null, error: { message, code: "INTERNAL_ERROR" } }, 500)
   }
 })
 
@@ -137,9 +133,10 @@ app.delete("/:id", async (c) => {
       data: { success: true },
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Cancel alert error:", e)
-    return c.json({ data: null, error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" } }, 500)
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return c.json({ data: null, error: { message, code: "INTERNAL_ERROR" } }, 500)
   }
 })
 

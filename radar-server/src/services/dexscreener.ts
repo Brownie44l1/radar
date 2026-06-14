@@ -4,6 +4,33 @@ import type { TokenData } from "../types"
 
 const BASE_URL = "https://api.dexscreener.com"
 
+interface DexScreenerPair {
+  chainId: string
+  baseToken: { address: string; symbol: string; name: string }
+  priceUsd?: string
+  liquidity?: { usd: number }
+  marketCap?: number
+  volume?: { h24: number }
+  priceChange?: { h24: number }
+  pairCreatedAt?: number
+}
+
+function mapPair(pair: DexScreenerPair): TokenData {
+  return {
+    address: pair.baseToken.address,
+    symbol: pair.baseToken.symbol,
+    name: pair.baseToken.name,
+    chain: pair.chainId,
+    price: parseFloat(pair.priceUsd || "0"),
+    liquidity: pair.liquidity?.usd || 0,
+    marketCap: pair.marketCap || 0,
+    volume24h: pair.volume?.h24 || 0,
+    priceChange24h: pair.priceChange?.h24 || 0,
+    pairCreatedAt: pair.pairCreatedAt,
+    cachedAt: Date.now(),
+  }
+}
+
 export async function searchTokens(query: string): Promise<TokenData[] | null> {
   const cacheKey = `search:${query.toLowerCase()}`
   const cached = await cacheGet<TokenData[]>(cacheKey)
@@ -12,37 +39,23 @@ export async function searchTokens(query: string): Promise<TokenData[] | null> {
   try {
     const res = await fetch(`${BASE_URL}/latest/dex/search?q=${encodeURIComponent(query)}`)
     if (!res.ok) return null
-    const data = await res.json()
+    const data = await res.json() as { pairs: DexScreenerPair[] }
     if (!data.pairs) return []
 
-    // Filter and map pairs
     const tokens: TokenData[] = []
     const seen = new Set<string>()
 
-    for (const pair of data.pairs) {
-      const address = pair.baseToken.address
-      const chain = pair.chainId
-      const key = `${chain}:${address}`
+    for (const raw of data.pairs) {
+      const pair = raw
+      const key = `${pair.chainId}:${pair.baseToken.address}`
       if (seen.has(key)) continue
       seen.add(key)
 
-      tokens.push({
-        address,
-        symbol: pair.baseToken.symbol,
-        name: pair.baseToken.name,
-        chain,
-        price: parseFloat(pair.priceUsd || "0"),
-        liquidity: pair.liquidity?.usd || 0,
-        marketCap: pair.marketCap || 0,
-        volume24h: pair.volume?.h24 || 0,
-        priceChange24h: pair.priceChange?.h24 || 0,
-        cachedAt: Date.now(),
-      })
-
+      tokens.push(mapPair(pair))
       if (tokens.length >= 20) break
     }
 
-    await cacheSet(cacheKey, tokens, CACHE_TTL.PRICE) // Cache search results for 30s
+    await cacheSet(cacheKey, tokens, CACHE_TTL.PRICE)
     return tokens
   } catch (e) {
     console.error("searchTokens error:", e)
@@ -59,31 +72,20 @@ export async function getTokenData(address: string, chain: string): Promise<Toke
   try {
     const res = await fetch(`${BASE_URL}/latest/dex/tokens/${address}`)
     if (!res.ok) return null
-    const data = await res.json()
+    const data = await res.json() as { pairs: DexScreenerPair[] }
     if (!data.pairs || data.pairs.length === 0) return null
 
-    // Filter pairs by the requested chain
-    const chainPairs = data.pairs.filter((p: any) => p.chainId.toLowerCase() === normalizedChain)
+    const chainPairs = data.pairs
+      .filter((p) => p.chainId.toLowerCase() === normalizedChain)
     if (chainPairs.length === 0) return null
 
-    // Sort by liquidity descending to get the main/most active pair
-    chainPairs.sort((a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))
+    chainPairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))
     const bestPair = chainPairs[0]
+    if (!bestPair) return null
 
-    const tokenData: TokenData = {
-      address: bestPair.baseToken.address,
-      symbol: bestPair.baseToken.symbol,
-      name: bestPair.baseToken.name,
-      chain: normalizedChain,
-      price: parseFloat(bestPair.priceUsd || "0"),
-      liquidity: bestPair.liquidity?.usd || 0,
-      marketCap: bestPair.marketCap || 0,
-      volume24h: bestPair.volume?.h24 || 0,
-      priceChange24h: bestPair.priceChange?.h24 || 0,
-      cachedAt: Date.now(),
-    }
+    const tokenData = mapPair(bestPair)
 
-    await cacheSet(cacheKey, tokenData, CACHE_TTL.PRICE) // Cache token data for 30s (PRICE TTL)
+    await cacheSet(cacheKey, tokenData, CACHE_TTL.PRICE)
     return tokenData
   } catch (e) {
     console.error("getTokenData error:", e)
@@ -97,14 +99,12 @@ export async function getTrending(): Promise<TokenData[] | null> {
   if (cached) return cached
 
   try {
-    // 1. Fetch top boosted tokens
     const boostsRes = await fetch(`${BASE_URL}/token-boosts/top/v1`)
     let addresses: string[] = []
     
     if (boostsRes.ok) {
       const boosts = await boostsRes.json()
       if (Array.isArray(boosts)) {
-        // Get unique token addresses
         const uniqueAddrs = new Set<string>()
         for (const item of boosts) {
           if (item.tokenAddress) {
@@ -116,49 +116,32 @@ export async function getTrending(): Promise<TokenData[] | null> {
       }
     }
 
-    // Fallback if no boosts found
     if (addresses.length === 0) {
-      // Use some popular default tickers/addresses for Solana/Ethereum as fallback
       addresses = [
-        "EKp5H2tV6T2Fw5vT5cE5e6K5T6Fw5vT5cE5e6K5T6Fw", // Dummy examples or popular addresses
+        "EKp5H2tV6T2Fw5vT5cE5e6K5T6Fw5vT5cE5e6K5T6Fw",
         "So11111111111111111111111111111111111111112",
       ]
     }
 
-    // 2. Fetch pair details for these addresses in bulk (up to 30)
     const tokensRes = await fetch(`${BASE_URL}/latest/dex/tokens/${addresses.join(",")}`)
     if (!tokensRes.ok) return null
-    const tokensData = await tokensRes.json()
+    const tokensData = await tokensRes.json() as { pairs: DexScreenerPair[] }
     if (!tokensData.pairs) return []
 
-    // 3. Map pairs to TokenData
     const tokens: TokenData[] = []
     const seen = new Set<string>()
 
-    for (const pair of tokensData.pairs) {
-      const address = pair.baseToken.address
-      const chain = pair.chainId
-      const key = `${chain}:${address}`
+    for (const raw of tokensData.pairs) {
+      const pair = raw
+      const key = `${pair.chainId}:${pair.baseToken.address}`
       if (seen.has(key)) continue
       seen.add(key)
 
-      tokens.push({
-        address,
-        symbol: pair.baseToken.symbol,
-        name: pair.baseToken.name,
-        chain,
-        price: parseFloat(pair.priceUsd || "0"),
-        liquidity: pair.liquidity?.usd || 0,
-        marketCap: pair.marketCap || 0,
-        volume24h: pair.volume?.h24 || 0,
-        priceChange24h: pair.priceChange?.h24 || 0,
-        cachedAt: Date.now(),
-      })
-
+      tokens.push(mapPair(pair))
       if (tokens.length >= 20) break
     }
 
-    await cacheSet(cacheKey, tokens, CACHE_TTL.TRENDING) // Cache trending for 5 mins
+    await cacheSet(cacheKey, tokens, CACHE_TTL.TRENDING)
     return tokens
   } catch (e) {
     console.error("getTrending error:", e)

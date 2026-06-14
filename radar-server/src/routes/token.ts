@@ -4,6 +4,7 @@ import { getTokenData, searchTokens } from "../services/dexscreener"
 import { getTopHolders } from "../services/helius"
 import { detectBundle } from "../services/bundleDetect"
 import { checkSmartMoney } from "../services/smartMoney"
+import type { SmartMoneyResult } from "../services/smartMoney"
 
 const app = new Hono()
 
@@ -25,9 +26,9 @@ app.get("/:address", async (c) => {
 
     // 2. Fetch Solana-specific data in parallel if chain is solana
     const isSolana = chain.toLowerCase() === "solana"
-    let holderData = null
-    let bundleDetected = null
-    let smartMoneyMatches = { count: 0, matches: [] as any[] }
+    let holderData: Awaited<ReturnType<typeof getTopHolders>> = null
+    let bundleDetected: Awaited<ReturnType<typeof detectBundle>> = null
+    let smartMoneyMatches: SmartMoneyResult = { count: 0, matches: [] }
 
     if (isSolana) {
       const [holders, bundle, smartMoney] = await Promise.all([
@@ -41,12 +42,14 @@ app.get("/:address", async (c) => {
     }
 
     // 3. Compute Risk Score
-    // For token age: use default of 48 hours unless we can compute it (handled gracefully in risk score)
+    const tokenAgeHours = tokenData.pairCreatedAt
+      ? (Date.now() - tokenData.pairCreatedAt) / 3_600_000
+      : 0
     const riskSignals = {
       liquidity: tokenData.liquidity,
       topHolderPercent: holderData?.topHolderPercent || 0,
       bundleDetected: !!bundleDetected,
-      tokenAgeHours: 48, 
+      tokenAgeHours,
       smartMoneyCount: smartMoneyMatches.count,
     }
 
@@ -66,9 +69,10 @@ app.get("/:address", async (c) => {
       data: researchCard,
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Token route error:", e)
-    return c.json({ data: null, error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" } }, 500)
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return c.json({ data: null, error: { message, code: "INTERNAL_ERROR" } }, 500)
   }
 })
 
@@ -85,9 +89,10 @@ app.get("/search/:query", async (c) => {
       data: results,
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Search route error:", e)
-    return c.json({ data: null, error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" } }, 500)
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return c.json({ data: null, error: { message, code: "INTERNAL_ERROR" } }, 500)
   }
 })
 

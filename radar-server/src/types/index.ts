@@ -8,6 +8,7 @@ export interface TokenData {
   marketCap: number
   volume24h: number
   priceChange24h: number
+  pairCreatedAt?: number
   cachedAt: number
 }
 

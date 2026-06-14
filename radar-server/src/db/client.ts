@@ -1,17 +1,16 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-let supabaseClient: any = null
+let supabaseClient: SupabaseClient | null = null
 
-function getSupabase(): any {
+function getSupabase(): SupabaseClient {
   if (!supabaseClient) {
     const url = process.env.SUPABASE_URL
     const key = process.env.SUPABASE_ANON_KEY
     if (!url || !key) {
       console.warn("Supabase credentials missing. Database operations will be mocked/disabled.")
-      // Return a dummy proxy client that logs warning instead of throwing on call
-      return new Proxy({} as any, {
-        get(_, prop) {
-          return (...args: any[]) => {
+      return new Proxy({} as SupabaseClient, {
+        get(_target, prop) {
+          return (...args: unknown[]) => {
             console.error(`Supabase operation failed: Supabase credentials missing (tried to access ${String(prop)})`)
             return {
               from: () => ({
@@ -48,8 +47,8 @@ function getSupabase(): any {
   return supabaseClient
 }
 
-export const supabase = new Proxy({} as any, {
-  get(_, prop) {
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
     const client = getSupabase()
     const value = Reflect.get(client, prop)
     return typeof value === "function" ? value.bind(client) : value

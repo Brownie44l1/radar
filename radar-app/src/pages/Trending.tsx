@@ -75,15 +75,13 @@ export default function Trending({ onSelectToken }: Props) {
 
       {/* Loading Skeleton */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="flex flex-col">
           {[1, 2, 3, 4, 5].map((idx) => (
-            <div
-              key={idx}
-              className="w-full p-4 rounded-3xl bg-[var(--tg-theme-secondary-bg-color,#f4f4f5)] border border-[var(--tg-theme-hint-color,#e5e7eb)] animate-pulse flex justify-between items-center"
-            >
-              <div className="space-y-2">
-                <div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
-                <div className="h-3 w-16 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
+            <div key={idx} className="flex items-center px-0 py-4 border-b border-[#494454]/10 animate-pulse">
+              <div className="w-8 h-4 bg-[#34343c] rounded ml-2" />
+              <div className="flex-1 ml-2 space-y-1.5">
+                <div className="h-4 w-20 bg-[#34343c] rounded" />
+                <div className="h-3 w-28 bg-[#34343c] rounded" />
               </div>
               <div className="space-y-2 flex flex-col items-end">
                 <div className="h-4 w-20 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>

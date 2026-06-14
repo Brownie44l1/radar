@@ -1,19 +1,3 @@
-import { GoogleGenAI } from "@google/genai"
-
-let ai: GoogleGenAI | null = null
-
-function getAIClient(): GoogleGenAI | null {
-  if (!ai) {
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
-      console.warn("GEMINI_API_KEY is not configured")
-      return null
-    }
-    ai = new GoogleGenAI({ apiKey })
-  }
-  return ai
-}
-
 export async function askGemini(
   message: string,
   history: { role: string; content: string }[]
@@ -24,7 +8,7 @@ export async function askGemini(
   }
 
   try {
-    const contents: any[] = []
+    const contents: { role: string; parts: { text: string }[] }[] = []
 
     for (const turn of history) {
       const role = turn.role === "assistant" || turn.role === "model" ? "model" : "user"
@@ -67,7 +51,7 @@ export async function askGemini(
       return "AI is temporarily unavailable — please try again."
     }
 
-    const data = await response.json()
+    const data = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] }
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text
     return text || "No response received from AI."
   } catch (e) {

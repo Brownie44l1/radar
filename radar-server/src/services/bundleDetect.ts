@@ -1,5 +1,16 @@
 import { cacheGet, cacheSet } from "../cache/redis"
 
+interface SigResult {
+  signature: string
+  slot: number
+}
+
+interface HeliusTx {
+  slot: number
+  feePayer?: string
+  nativeTransfers?: { fromUserAccount?: string }[]
+}
+
 export async function detectBundle(address: string): Promise<boolean | null> {
   const cacheKey = `bundle:${address.toLowerCase()}`
   const cached = await cacheGet<boolean>(cacheKey)
@@ -14,7 +25,6 @@ export async function detectBundle(address: string): Promise<boolean | null> {
   const rpcUrl = `https://mainnet.helius-rpc.com/?api-key=${apiKey}`
 
   try {
-    // 1. Get signatures (representing transaction history)
     const sigsRes = await fetch(rpcUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,10 +37,10 @@ export async function detectBundle(address: string): Promise<boolean | null> {
     })
 
     if (!sigsRes.ok) return false
-    const sigsData = await sigsRes.json()
+    const sigsData = await sigsRes.json() as { result?: SigResult[]; error?: { message: string } }
     if (sigsData.error || !sigsData.result) return false
 
-    const signatures = sigsData.result.map((s: any) => s.signature)
+    const signatures = sigsData.result.map((s) => s.signature)
     if (signatures.length === 0) return false
 
     // Group signatures by slot as an initial heuristic
@@ -53,39 +63,36 @@ export async function detectBundle(address: string): Promise<boolean | null> {
       return hasManyTxInSameBlock
     }
 
-    const txs = await txRes.json()
+    const txs = await txRes.json() as HeliusTx[]
     if (!Array.isArray(txs)) {
       await cacheSet(cacheKey, hasManyTxInSameBlock, 0)
       return hasManyTxInSameBlock
     }
 
-    // Group transactions by slot (block)
-    const slotToTxs: Record<number, any[]> = {}
+    const slotToTxs = new Map<number, HeliusTx[]>()
     for (const tx of txs) {
-      const slot = tx.slot
-      if (!slotToTxs[slot]) slotToTxs[slot] = []
-      slotToTxs[slot].push(tx)
+      const list = slotToTxs.get(tx.slot) ?? []
+      list.push(tx)
+      slotToTxs.set(tx.slot, list)
     }
 
     let isBundled = false
 
-    // Check each slot for bundling: 3+ wallets buying from the same funding source/fee payer
-    for (const slotStr in slotToTxs) {
-      const slotTxs = slotToTxs[slotStr]
+    for (const slotTxs of slotToTxs.values()) {
       if (slotTxs.length < 3) continue
 
       const fundingSources: Record<string, number> = {}
       for (const tx of slotTxs) {
         const feePayer = tx.feePayer
         if (feePayer) {
-          fundingSources[feePayer] = (fundingSources[feePayer] || 0) + 1
+          fundingSources[feePayer] = (fundingSources[feePayer] ?? 0) + 1
         }
 
         if (tx.nativeTransfers) {
           for (const transfer of tx.nativeTransfers) {
             const sender = transfer.fromUserAccount
             if (sender) {
-              fundingSources[sender] = (fundingSources[sender] || 0) + 1
+              fundingSources[sender] = (fundingSources[sender] ?? 0) + 1
             }
           }
         }

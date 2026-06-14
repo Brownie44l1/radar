@@ -11,7 +11,7 @@
 | Cache | Redis via Upstash | Free tier, TTL per key, stale-while-revalidate pattern |
 | Database | PostgreSQL via Supabase | Free tier — alerts, smart money list, wallet submissions, users |
 | Hosting (frontend) | Vercel | Free tier, instant deploys from git, HTTPS out of the box (required for Mini Apps) |
-| Hosting (backend) | Railway | Free $5 credit, supports always-on Bun processes |
+| Hosting (backend) | Render | Free tier, supports always-on Bun processes via root `package.json` |
 | Price / liquidity | DEXScreener API | Free, no API key, supports all major chains + Solana |
 | On-chain data | Helius RPC (Solana) | Free tier — holder data, bundle detection |
 | AI chat | Anthropic Claude API (claude-haiku-3-5) | Cheapest Claude model, fast responses, more than capable for crypto Q&A |
@@ -32,7 +32,7 @@ Telegram Client
       │         │
       │         └── REST API calls
       │                   │
-      │              Bun + Hono Backend (Railway)
+      │              Bun + Hono Backend (Render)
       │                   │
       │         ┌─────────┼──────────────┐
       │         │         │              │
@@ -158,7 +158,7 @@ UPSTASH_REDIS_URL=
 UPSTASH_REDIS_TOKEN=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
-ANTHROPIC_API_KEY=
+GEMINI_API_KEY=
 FRONTEND_URL=
 
 # Frontend (.env)
@@ -173,6 +173,6 @@ VITE_BOT_USERNAME=
 | Upstash Redis | 10k commands/day | ~4 commands per lookup → ~2.5k lookups/day. Safe |
 | Supabase | 500MB storage, 50k rows | Not a concern |
 | Vercel | 100GB bandwidth | Not a concern |
-| Railway | $5 free credit | Monitor — should last the hackathon |
-| Anthropic | Pay per token | claude-haiku-3-5 is cheapest. Budget ~$1 for demo |
+| Render | Free tier | Monitor — may need upgrade for sustained use |
+| Gemini (Google AI) | Free tier (60 req/min) | gemini-2.5-flash is fast and free for the demo |
 | DEXScreener | Unlimited (unofficial) | No documented rate limit. Have mock data as fallback |

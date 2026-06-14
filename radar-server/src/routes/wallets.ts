@@ -74,9 +74,10 @@ app.post("/submit", async (c) => {
       },
       error: null,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Submit wallet error:", e)
-    return c.json({ data: null, error: { message: e.message || "Internal server error", code: "INTERNAL_ERROR" } }, 500)
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return c.json({ data: null, error: { message, code: "INTERNAL_ERROR" } }, 500)
   }
 })
 
