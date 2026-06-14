@@ -1,6 +1,6 @@
 export function getVerdictExplanation(
   riskScore: number,
-  verdict: string,
+  _verdict: string,
   bundleDetected: boolean | null,
   topHolderPercent: number | null,
 ): string {

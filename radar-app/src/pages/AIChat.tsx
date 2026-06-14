@@ -25,19 +25,6 @@ export default function AIChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    localStorage.setItem("radar_chat_history", JSON.stringify(messages))
-    scrollToBottom()
-  }, [messages])
-
-  useEffect(() => {
-    const pending = sessionStorage.getItem("radar_pending_chat")
-    if (pending) {
-      sessionStorage.removeItem("radar_pending_chat")
-      handleSend(pending)
-    }
-  }, [])
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -75,10 +62,20 @@ export default function AIChat() {
     }
   }
 
-  const handleClear = () => {
-    setMessages([])
-    localStorage.removeItem("radar_chat_history")
-  }
+  useEffect(() => {
+    localStorage.setItem("radar_chat_history", JSON.stringify(messages))
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    const pending = sessionStorage.getItem("radar_pending_chat")
+    if (pending) {
+      sessionStorage.removeItem("radar_pending_chat")
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleSend(pending)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="flex flex-col h-full w-full relative">

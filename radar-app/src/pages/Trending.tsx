@@ -3,6 +3,9 @@ import { api } from "../lib/api"
 import Icon from "../components/Icon"
 import type { TrendingToken } from "../types"
 
+const INITIAL_DISPLAY = 20
+const LOAD_MORE_INCREMENT = 10
+
 interface Props {
   onSelectToken: (address: string, chain: string) => void
 }
@@ -21,30 +24,36 @@ function formatPrice(price: number): string {
 }
 
 export default function Trending({ onSelectToken }: Props) {
-  const [tokens, setTokens] = useState<TrendingToken[]>([])
+  const [allTokens, setAllTokens] = useState<TrendingToken[]>([])
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchTrending = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await api.getTrending()
-      if (data) {
-        setTokens(data)
-      } else {
-        setError("Failed to fetch trending tokens.")
-      }
-    } catch {
-      setError("An error occurred while loading trending tokens.")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const visibleTokens = allTokens.slice(0, displayCount)
+  const hasMore = displayCount < allTokens.length
 
   useEffect(() => {
-    fetchTrending()
+    (async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await api.getTrending()
+        if (data) {
+          setAllTokens(data)
+        } else {
+          setError("Failed to fetch trending tokens.")
+        }
+      } catch {
+        setError("An error occurred while loading trending tokens.")
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
+
+  const handleLoadMore = () => {
+    setDisplayCount((prev) => prev + LOAD_MORE_INCREMENT)
+  }
 
   return (
     <div className="w-full">
@@ -110,7 +119,7 @@ export default function Trending({ onSelectToken }: Props) {
         <>
           {/* Token List */}
           <div className="flex flex-col">
-            {tokens.map((token, index) => {
+            {visibleTokens.map((token, index) => {
               const isPositive = token.priceChange24h >= 0
               return (
                 <button
@@ -150,15 +159,16 @@ export default function Trending({ onSelectToken }: Props) {
           </div>
 
           {/* Load More */}
-          <div className="py-4 flex justify-center">
-            <button
-              onClick={fetchTrending}
-              disabled={loading}
-              className="bg-[#2a2931] hover:bg-[#34343c]/50 text-[#e4e1eb] text-[12px] font-[600] px-6 py-2.5 rounded-full transition-all active:scale-95 border border-[#494454]/30 disabled:opacity-50 cursor-pointer"
-            >
-              Load more trending
-            </button>
-          </div>
+          {hasMore && (
+            <div className="py-4 flex justify-center">
+              <button
+                onClick={handleLoadMore}
+                className="bg-[#2a2931] hover:bg-[#34343c]/50 text-[#e4e1eb] text-[12px] font-[600] px-6 py-2.5 rounded-full transition-all active:scale-95 border border-[#494454]/30 cursor-pointer"
+              >
+                Load more trending
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { api } from "../lib/api"
 import Icon from "./Icon"
+import { hapticSuccess } from "../lib/telegram"
 
 interface Props {
   isOpen: boolean
@@ -34,10 +35,7 @@ export default function WalletModal({ isOpen, onClose, tokenSymbol }: Props) {
     try {
       const res = await api.submitWallet(walletAddress.trim())
       if (res) {
-        const tg = (window as any).Telegram?.WebApp
-        if (tg?.HapticFeedback) {
-          tg.HapticFeedback.notificationOccurred("success")
-        }
+        hapticSuccess()
         setMessage("Submitted - we'll review and add if it qualifies")
         setTimeout(() => {
           onClose()

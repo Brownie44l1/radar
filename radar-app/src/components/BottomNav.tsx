@@ -1,4 +1,4 @@
-import Icon from "./Icon"
+import Icon, { type IconName } from "./Icon"
 
 interface Props {
   active: "research" | "trending" | "chat"
@@ -6,7 +6,7 @@ interface Props {
 }
 
 export default function BottomNav({ active, onTab }: Props) {
-  const tabs = [
+  const tabs: { id: "research" | "trending" | "chat"; label: string; icon: IconName }[] = [
     { id: "research" as const, label: "Research", icon: "search" },
     { id: "trending" as const, label: "Trending", icon: "trending_up" },
     { id: "chat" as const, label: "AI Chat", icon: "chatbot" },

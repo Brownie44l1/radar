@@ -26,46 +26,6 @@ export default function Research({ activeToken, onClearActiveToken, onAskAI }: P
   const [isCardLive, setIsCardLive] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (activeToken) {
-      handleSelectToken(activeToken.address, activeToken.chain)
-    }
-  }, [activeToken])
-
-  useEffect(() => {
-    const handleBack = () => {
-      handleGoBack()
-    }
-    window.addEventListener("tma-back-button", handleBack)
-    return () => {
-      window.removeEventListener("tma-back-button", handleBack)
-    }
-  }, [selectedCard])
-
-  const handleSearch = async (query: string) => {
-    setLoading(true)
-    setError(null)
-    setResults([])
-    setSelectedCard(null)
-
-    try {
-      if (isContractAddress(query)) {
-        await handleSelectToken(query, "solana")
-      } else {
-        const data = await api.searchToken(query)
-        if (data && data.length > 0) {
-          setResults(data)
-        } else {
-          setError("No tokens found matching search query")
-        }
-      }
-    } catch {
-      setError("An error occurred during search")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSelectToken = async (address: string, chain: string) => {
     setLoading(true)
     setError(null)
@@ -116,6 +76,48 @@ export default function Research({ activeToken, onClearActiveToken, onAskAI }: P
     }
     hideBackButton()
   }
+
+  const handleSearch = async (query: string) => {
+    setLoading(true)
+    setError(null)
+    setResults([])
+    setSelectedCard(null)
+
+    try {
+      if (isContractAddress(query)) {
+        await handleSelectToken(query, "solana")
+      } else {
+        const data = await api.searchToken(query)
+        if (data && data.length > 0) {
+          setResults(data)
+        } else {
+          setError("No tokens found matching search query")
+        }
+      }
+    } catch {
+      setError("An error occurred during search")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleSelectToken(activeToken.address, activeToken.chain)
+    }
+  }, [activeToken])
+
+  useEffect(() => {
+    const handleBack = () => {
+      handleGoBack()
+    }
+    window.addEventListener("tma-back-button", handleBack)
+    return () => {
+      window.removeEventListener("tma-back-button", handleBack)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCard])
 
   return (
     <div className="w-full space-y-6">

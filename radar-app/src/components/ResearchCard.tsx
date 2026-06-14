@@ -28,7 +28,7 @@ export default function ResearchCard({ card, isLive, onAskAI }: Props) {
   const isDanger = riskScore > 60
   const isWarning = riskScore > 30 && riskScore <= 60
 
-  let verdictExplanation = ""
+  let verdictExplanation
   if (isDanger) {
     verdictExplanation = `Critical rug signals detected. ${
       bundleDetected ? "Launch bundle detected. " : ""

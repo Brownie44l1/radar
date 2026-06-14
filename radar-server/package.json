@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.20.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -14,11 +15,13 @@
     "@supabase/supabase-js": "^2.108.1",
     "@upstash/redis": "^1.38.0",
     "grammy": "^1.43.0",
-    "hono": "^4.12.25"
+    "hono": "^4.12.25",
+    "pg": "^8.21.0"
   },
   "scripts": {
+    "migrate": "bun src/db/migrate.ts",
     "dev": "bun --watch src/index.ts",
-    "start": "bun src/index.ts",
+    "start": "bun src/db/migrate.ts && bun src/index.ts",
     "test": "bun test"
   }
 }

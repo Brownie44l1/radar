@@ -6,8 +6,24 @@ interface IconDef {
   render?: (size: number, className: string | undefined, style: CSSProperties | undefined) => ReactNode
 }
 
+export type IconName =
+  | "account_balance_wallet"
+  | "chatbot"
+  | "check_circle"
+  | "close"
+  | "groups"
+  | "info"
+  | "message_circle"
+  | "notifications"
+  | "radar"
+  | "radar_2"
+  | "search"
+  | "smart_toy"
+  | "trending_up"
+  | "warning"
+
 interface IconProps {
-  name: string
+  name: IconName
   size?: number
   className?: string
   style?: CSSProperties
@@ -17,7 +33,7 @@ function def(path: string, viewBox = "0 0 24 24"): IconDef {
   return { path, viewBox }
 }
 
-const icons: Record<string, IconDef> = {
+const icons: Record<IconName, IconDef> = {
   notifications: def(
     "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
   ),
