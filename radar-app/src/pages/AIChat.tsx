@@ -5,6 +5,7 @@ import Icon from "../components/Icon"
 interface Message {
   role: "user" | "assistant"
   content: string
+  sentAt: number
 }
 
 const SUGGESTIONS = [
@@ -16,7 +17,7 @@ const SUGGESTIONS = [
 
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = sessionStorage.getItem("radar_chat_history")
+    const saved = localStorage.getItem("radar_chat_history")
     return saved ? JSON.parse(saved) : []
   })
   const [input, setInput] = useState("")
@@ -25,7 +26,7 @@ export default function AIChat() {
   const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    sessionStorage.setItem("radar_chat_history", JSON.stringify(messages))
+    localStorage.setItem("radar_chat_history", JSON.stringify(messages))
     scrollToBottom()
   }, [messages])
 
@@ -44,7 +45,7 @@ export default function AIChat() {
   const handleSend = async (text: string) => {
     if (!text.trim() || loading) return
 
-    const userMessage: Message = { role: "user", content: text }
+    const userMessage: Message = { role: "user", content: text, sentAt: Date.now() }
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setLoading(true)
@@ -55,22 +56,28 @@ export default function AIChat() {
         content: m.content,
       }))
       const response = await api.chat(text, chatHistory)
+      const now = Date.now()
       if (response) {
-        setMessages((prev) => [...prev, { role: "assistant", content: response }])
+        setMessages((prev) => [...prev, { role: "assistant", content: response, sentAt: now }])
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "Sorry, I encountered an issue. Please try again." },
+          { role: "assistant", content: "Sorry, I encountered an issue. Please try again.", sentAt: now },
         ])
       }
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Error connecting to AI assistant." },
+        { role: "assistant", content: "Error connecting to AI assistant.", sentAt: Date.now() },
       ])
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleClear = () => {
+    setMessages([])
+    localStorage.removeItem("radar_chat_history")
   }
 
   return (

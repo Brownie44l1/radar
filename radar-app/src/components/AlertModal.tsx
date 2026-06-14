@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { api } from "../lib/api"
 import Icon from "./Icon"
+import { hapticSuccess } from "../lib/telegram"
 
 interface Props {
   isOpen: boolean
@@ -35,10 +36,7 @@ export default function AlertModal({ isOpen, onClose, tokenAddress, tokenSymbol,
     try {
       const res = await api.setAlert(tokenAddress, target, tokenSymbol, tokenChain)
       if (res) {
-        const tg = (window as any).Telegram?.WebApp
-        if (tg?.HapticFeedback) {
-          tg.HapticFeedback.notificationOccurred("success")
-        }
+        hapticSuccess()
         setMessage(`Success! Alert set for $${target}`)
         setTimeout(() => {
           onClose()

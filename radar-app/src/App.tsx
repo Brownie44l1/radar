@@ -4,6 +4,7 @@ import Research from "./pages/Research"
 import Trending from "./pages/Trending"
 import AIChat from "./pages/AIChat"
 import Icon from "./components/Icon"
+import { initTelegram, onBackButtonClick } from "./lib/telegram"
 
 type Tab = "research" | "trending" | "chat"
 
@@ -12,34 +13,12 @@ export default function App() {
   const [activeToken, setActiveToken] = useState<{ address: string; chain: string } | null>(null)
 
   useEffect(() => {
-    const tg = (window as unknown as {
-      Telegram?: {
-        WebApp?: {
-          ready: () => void
-          expand: () => void
-          BackButton?: {
-            onClick: (cb: () => void) => void
-            offClick: (cb: () => void) => void
-          }
-        }
-      }
-    }).Telegram?.WebApp
+    initTelegram()
 
-    if (tg) {
-      tg.ready()
-      tg.expand()
-
-      const backButton = tg.BackButton
-      if (backButton) {
-        const handleBackClick = () => {
-          window.dispatchEvent(new Event("tma-back-button"))
-        }
-        backButton.onClick(handleBackClick)
-        return () => {
-          backButton.offClick(handleBackClick)
-        }
-      }
-    }
+    const cleanup = onBackButtonClick(() => {
+      window.dispatchEvent(new Event("tma-back-button"))
+    })
+    return cleanup
   }, [])
 
   const handleSelectToken = (address: string, chain: string) => {

@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { askGemini } from "../services/gemini"
 import { getTelegramUser } from "./alerts"
+import { rateLimit } from "../lib/rateLimit"
 
 const app = new Hono()
 
@@ -16,6 +17,20 @@ app.post("/", async (c) => {
       )
     }
 
+    const { allowed, remaining, resetAt } = rateLimit(`chat:${user.id}`, 10, 60)
+    if (!allowed) {
+      return c.json(
+        {
+          data: null,
+          error: {
+            message: `Rate limit exceeded. Try again in ${Math.ceil((resetAt - Date.now()) / 1000)}s`,
+            code: "RATE_LIMITED",
+          },
+        },
+        429
+      )
+    }
+
     const { message, history } = await c.req.json()
 
     if (!message) {
@@ -23,6 +38,16 @@ app.post("/", async (c) => {
         {
           data: null,
           error: { message: "Message is required", code: "VALIDATION_ERROR" },
+        },
+        400
+      )
+    }
+
+    if (typeof message !== "string" || message.length > 2000) {
+      return c.json(
+        {
+          data: null,
+          error: { message: "Message must be under 2000 characters", code: "VALIDATION_ERROR" },
         },
         400
       )

@@ -58,14 +58,14 @@ export async function detectBundle(address: string): Promise<boolean | null> {
     })
 
     if (!txRes.ok) {
-      // Fallback: If the Enhanced API fails, use slot-grouping heuristic
-      await cacheSet(cacheKey, hasManyTxInSameBlock, 0)
+      // Fallback: short TTL so we retry when Helius recovers
+      await cacheSet(cacheKey, hasManyTxInSameBlock, 120)
       return hasManyTxInSameBlock
     }
 
     const txs = await txRes.json() as HeliusTx[]
     if (!Array.isArray(txs)) {
-      await cacheSet(cacheKey, hasManyTxInSameBlock, 0)
+      await cacheSet(cacheKey, hasManyTxInSameBlock, 120)
       return hasManyTxInSameBlock
     }
 

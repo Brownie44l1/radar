@@ -4,6 +4,7 @@ import SearchBar from "../components/SearchBar"
 import ResearchCard from "../components/ResearchCard"
 import Icon from "../components/Icon"
 import type { TokenData, ResearchCard as CardType } from "../types"
+import { showBackButton, hideBackButton } from "../lib/telegram"
 
 function isContractAddress(input: string): boolean {
   const clean = input.trim()
@@ -79,16 +80,7 @@ export default function Research({ activeToken, onClearActiveToken, onAskAI }: P
 
       setSelectedCard(data)
 
-      const tg = (window as unknown as {
-        Telegram?: {
-          WebApp?: {
-            BackButton?: { show: () => void; hide: () => void }
-          }
-        }
-      }).Telegram?.WebApp
-      if (tg?.BackButton) {
-        tg.BackButton.show()
-      }
+      showBackButton()
 
       const cacheAge = Date.now() - data.tokenData.cachedAt
       if (cacheAge > 5000) {
@@ -122,16 +114,7 @@ export default function Research({ activeToken, onClearActiveToken, onAskAI }: P
     if (onClearActiveToken) {
       onClearActiveToken()
     }
-    const tg = (window as unknown as {
-      Telegram?: {
-        WebApp?: {
-          BackButton?: { show: () => void; hide: () => void }
-        }
-      }
-    }).Telegram?.WebApp
-    if (tg?.BackButton) {
-      tg.BackButton.hide()
-    }
+    hideBackButton()
   }
 
   return (

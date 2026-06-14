@@ -1,10 +1,11 @@
 import type { TokenData, ResearchCard, TrendingToken } from "../types"
+import { getInitData } from "./telegram"
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001"
 
 async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
   try {
-    const initData = (window as unknown as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData || ""
+    const initData = getInitData()
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options?.headers as Record<string, string> || {}),

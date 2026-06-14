@@ -118,8 +118,9 @@ export async function getTrending(): Promise<TokenData[] | null> {
 
     if (addresses.length === 0) {
       addresses = [
-        "EKp5H2tV6T2Fw5vT5cE5e6K5T6Fw5vT5cE5e6K5T6Fw",
         "So11111111111111111111111111111111111111112",
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
       ]
     }
 
